@@ -137,6 +137,8 @@ func main() {
 	for _, repo := range setting.Repositories {
 		wg.Add(1)
 		go func(repo1 Repository){
+			defer wg.Done()
+			
 			fetch_error := fetchSource(repo1)
 			if fetch_error != nil {
 				panic(fetch_error)
