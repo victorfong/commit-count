@@ -1,18 +1,20 @@
+#!/bin/bash 
+
 bin=`dirname $0`
 
 echo "Creating Work Directory"
-mkdir $bin/../work -p
-if [ ! -d "$bin/../work/$1" ]; then
+mkdir ~/tmp/commit-count/work -p
+if [ ! -d ~/tmp/commit-count/work/$1 ]; then
 	echo "Cloning Source"
-	cd $bin/../work 
-	git clone $2 "$1"
+	cd ~/tmp/commit-count/work 
+	git clone $2 $1
 else
 	echo "Pulling Sourcing"
-	cd $bin/../work/$1 
+	cd ~/tmp/commit-count/work/$1
 	git pull origin master -r
 	cd ..
 fi
 
 echo "Generating Log file"
-cd $1 
-git log > ../$1_log.txt
+cd ~/tmp/commit-count/work/$1 
+git log --all > ~/tmp/commit-count/work/$1_log.txt

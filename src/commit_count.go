@@ -55,28 +55,34 @@ func ReadSettingFile(file_path string) (Setting, error) {
 func fetchSource(repo Repository) error{
 	fmt.Printf("Fetching %s\n", repo.Name)
 	
-	var cmd exec.Cmd = exec.Cmd {
-		Path: "../bin/fetch-source",
-		Args: []string {repo.Name, repo.Url},
-	}
+	var cmd *exec.Cmd = exec.Command(
+		"bin/fetch-source",
+		repo.Name, 
+		repo.Url)
 	
-	err := cmd.Run()
+	result, err := cmd.CombinedOutput()
+	fmt.Printf("result = " + string(result))
+	
 	return err
 }
 
 func CountCommits(file_path string, repo_name string, setting Setting) map[string]int{
+	fmt.Printf("Reading log file: %s\n", file_path)
+	
 	var result map[string]int = make(map[string]int) 
 	for _, contributor := range setting.Contributors {
 		result[contributor.Name] = 0
 	}
 	
-	inFile, _ := os.Open(file_path)
+	inFile, err := os.Open(file_path)
+	if err != nil { panic(err) }
 	defer inFile.Close()
 	
 	scanner := bufio.NewScanner(inFile)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		var line string = scanner.Text()
+		
 		for _, contributor := range setting.Contributors {
 			if strings.Contains(line, contributor.Name) {
 				result[contributor.Name]++
@@ -111,7 +117,7 @@ func CreateOutputFile(setting Setting, result map[string]map[string]int) {
 		buffer.WriteString("\n")
 	}
 	fmt.Printf(buffer.String())
-	ioutil.WriteFile("work/result.csv", buffer.Bytes(), 0644)
+	ioutil.WriteFile("~/tmp/commit-count/work/result.csv", buffer.Bytes(), 0644)
 
 }
 
@@ -127,9 +133,12 @@ func main() {
 	
 	fmt.Printf("Fetching History\n")
 	for _, repo := range setting.Repositories {
-		fetchSource(repo)
+		fetch_error := fetchSource(repo)
+		if fetch_error != nil {
+			panic(fetch_error)
+		}
 		
-		var file_path string = "work/" + repo.Name + "_log.txt" 
+		var file_path string = "/home/victor/tmp/commit-count/work/" + repo.Name + "_log.txt" 
 		var repo_counts map[string]int = CountCommits(file_path, repo.Name, setting)
 		
 		for _, contributor := range setting.Contributors {
