@@ -18,7 +18,7 @@ repositories:
   url: https://github.com/cloudfoundry/uaa.git
 - name: CF_Cloud_Controller
   url: https://github.com/cloudfoundry/cloud_controller_ng.git
-- name: Go Router
+- name: Go_Router
   url: https://github.com/cloudfoundry/gorouter.git
 
 
