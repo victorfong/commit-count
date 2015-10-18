@@ -1,0 +1,9 @@
+---
+repositories: 
+- name: Bosh
+  url: some_url
+- name: Bosh CPI
+  url: some_url2
+contributors:
+- name: Victor Fong
+- name: Shan Shan Zhao
