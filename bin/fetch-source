@@ -1,0 +1,18 @@
+bin=`dirname $0`
+
+echo "Creating Work Directory"
+mkdir $bin/../work -p
+if [ ! -d "$bin/../work/$1" ]; then
+	echo "Cloning Source"
+	cd $bin/../work 
+	git clone $2 "$1"
+else
+	echo "Pulling Sourcing"
+	cd $bin/../work/$1 
+	git pull origin master -r
+	cd ..
+fi
+
+echo "Generating Log file"
+cd $1 
+git log > ../$1_log.txt

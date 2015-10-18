@@ -1,0 +1,4 @@
+bin=`dirname $0`
+#Call the other script
+
+go run $bin/../src/commit_count.go
