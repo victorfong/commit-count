@@ -1,0 +1,36 @@
+---
+repositories:
+- name: Bosh
+  url: https://github.com/cloudfoundry/bosh.git
+- name: CF_BOSH_AWS_CPI
+  url: https://github.com/cloudfoundry-incubator/bosh-aws-cpi-release.git
+- name: CF_BOSH_vCloud_CPI
+  url: https://github.com/cloudfoundry-incubator/bosh-vcloud-cpi-release.git
+- name: CF_BOSH_vSphere_CPI
+  url: https://github.com/cloudfoundry-incubator/bosh-vsphere-cpi-release.git
+- name: CF_Bosh_Openstack_CPI
+  url: https://github.com/cloudfoundry-incubator/bosh-openstack-cpi-release.git
+- name: CF_BOSH_Agent
+  url: https://github.com/cloudfoundry/bosh-agent.git
+- name: CF_BOSH_Utils
+  url: https://github.com/cloudfoundry/bosh-utils.git
+- name: CF_UAA
+  url: https://github.com/cloudfoundry/uaa.git
+- name: CF_Cloud_Controller
+  url: https://github.com/cloudfoundry/cloud_controller_ng.git
+- name: Go Router
+  url: https://github.com/cloudfoundry/gorouter.git
+
+
+
+contributors:
+- name: Victor Fong
+- name: Luke Woydziak
+- name: Megan Murawski
+- name: Scott Weiss
+- name: Xuebin He
+- name: Thinh Nguyen
+- name: Jeff Pak
+- name: Yu Zhang
+- name: Paul Warren
+
