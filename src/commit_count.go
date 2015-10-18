@@ -10,6 +10,7 @@ import (
 	"strings"
 	"bytes"
 	"strconv"
+	"sync"
 )
 
 type Repository struct {
@@ -117,7 +118,7 @@ func CreateOutputFile(setting Setting, result map[string]map[string]int) {
 		buffer.WriteString("\n")
 	}
 	fmt.Printf(buffer.String())
-	ioutil.WriteFile("~/tmp/commit-count/work/result.csv", buffer.Bytes(), 0644)
+	ioutil.WriteFile("work/result.csv", buffer.Bytes(), 0644)
 
 }
 
@@ -132,20 +133,24 @@ func main() {
 	} 
 	
 	fmt.Printf("Fetching History\n")
+	var wg sync.WaitGroup
 	for _, repo := range setting.Repositories {
-		fetch_error := fetchSource(repo)
-		if fetch_error != nil {
-			panic(fetch_error)
-		}
-		
-		var file_path string = "/home/victor/tmp/commit-count/work/" + repo.Name + "_log.txt" 
-		var repo_counts map[string]int = CountCommits(file_path, repo.Name, setting)
-		
-		for _, contributor := range setting.Contributors {
-			result[contributor.Name][repo.Name] = repo_counts[contributor.Name]
-		}
+		wg.Add(1)
+		go func(repo1 Repository){
+			fetch_error := fetchSource(repo1)
+			if fetch_error != nil {
+				panic(fetch_error)
+			}
+			
+			var file_path string = "work/" + repo1.Name + "_log.txt" 
+			var repo_counts map[string]int = CountCommits(file_path, repo1.Name, setting)
+			
+			for _, contributor := range setting.Contributors {
+				result[contributor.Name][repo1.Name] = repo_counts[contributor.Name]
+			}
+		}(repo)
 	}
 	
+	wg.Wait()
 	CreateOutputFile(setting, result)
-			
 }
