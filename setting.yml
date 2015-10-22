@@ -20,11 +20,20 @@ repositories:
   url: https://github.com/cloudfoundry/cloud_controller_ng.git
 - name: Go_Router
   url: https://github.com/cloudfoundry/gorouter.git
-
-
+- name: CF_Release
+  url: https://github.com/cloudfoundry/cf-release.git
+- name: CF_Routing_Release
+  url: https://github.com/cloudfoundry-incubator/cf-routing-release.git
+- name: CF_Routing_API
+  url: https://github.com/cloudfoundry-incubator/routing-api.git
+- name: Gormeter
+  url: https://github.com/leochu/gormeter.git
+- name: CF_Thoth
+  url: https://github.com/cloudfoundry-incubator/thoth.git
+- name: CF_Acceptance_Tests
+  url: https://github.com/cloudfoundry/cf-acceptance-tests.git
 
 contributors:
-- name: Victor Fong
 - name: Luke Woydziak
 - name: Megan Murawski
 - name: Scott Weiss
@@ -33,4 +42,4 @@ contributors:
 - name: Jeff Pak
 - name: Yu Zhang
 - name: Paul Warren
-
+- name: Victor Fong
