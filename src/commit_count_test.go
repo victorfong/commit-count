@@ -1,10 +1,11 @@
 package main
 
 import (
-    "testing"
-    "github.com/stretchr/testify/assert"
-    "strings"
-    "bufio"
+	"bufio"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var test_data = `
@@ -43,9 +44,9 @@ func TestReadSettingFile(t *testing.T) {
 }
 
 func TestGetFirstWord(t *testing.T) {
-  assert.Equal(t, "Authors:", GetFirstWord("Authors: Victor Fong"))
-  assert.Equal(t, "", GetFirstWord(" "))
-  assert.Equal(t, "", GetFirstWord(""))
+	assert.Equal(t, "Authors:", GetFirstWord("Authors: Victor Fong"))
+	assert.Equal(t, "", GetFirstWord(" "))
+	assert.Equal(t, "", GetFirstWord(""))
 }
 
 var test_commit = `
@@ -65,27 +66,27 @@ Date:   Wed Oct 14 15:44:34 2015 -0400
 
 `
 
-func TestReadCommit(t *testing.T){
-  scanner := bufio.NewScanner(strings.NewReader(test_commit))
-  var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
-  assert.Equal(t, 2, len(gitCommits))
+func TestReadCommit(t *testing.T) {
+	scanner := bufio.NewScanner(strings.NewReader(test_commit))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 2, len(gitCommits))
 
-  assert.Equal(t, "Maria Shaldibina", gitCommits[0].Author)
-  assert.Equal(t, "Merge branch 'master' into hotfix-postgres", gitCommits[0].Description)
-  assert.Equal(t, "repo1", gitCommits[0].Repo)
+	assert.Equal(t, "Maria Shaldibina", gitCommits[0].Author)
+	assert.Equal(t, "Merge branch 'master' into hotfix-postgres", gitCommits[0].Description)
+	assert.Equal(t, "repo1", gitCommits[0].Repo)
 
-  assert.Equal(t, "Devin Fallak", gitCommits[1].Author)
-  assert.Equal(t, "Update README.md", gitCommits[1].Description)
+	assert.Equal(t, "Devin Fallak", gitCommits[1].Author)
+	assert.Equal(t, "Update README.md", gitCommits[1].Description)
 }
 
 func TestGetCoAuthor(t *testing.T) {
-  var testString = "    Signed-off-by: Tyler Schultz <tschultz@pivotal.io>"
-  assert.Equal(t, "Tyler Schultz", GetCoAuthor(testString))
+	var testString = "    Signed-off-by: Tyler Schultz <tschultz@pivotal.io>"
+	assert.Equal(t, "Tyler Schultz", GetCoAuthor(testString))
 }
 
 func TestGetAuthor(t *testing.T) {
-  var testString = "Author: Devin Fallak <dfallak@pivotal.io>"
-  assert.Equal(t, "Devin Fallak", GetAuthor(testString))
+	var testString = "Author: Devin Fallak <dfallak@pivotal.io>"
+	assert.Equal(t, "Devin Fallak", GetAuthor(testString))
 }
 
 var test_commit2 = `
@@ -98,23 +99,54 @@ Date:   Thu Oct 15 09:43:35 2015 -0700
 `
 
 func TestIsEmcCommit(t *testing.T) {
-  scanner := bufio.NewScanner(strings.NewReader(test_commit2))
-  var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
-  assert.Equal(t, 1, len(gitCommits))
+	scanner := bufio.NewScanner(strings.NewReader(test_commit2))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 1, len(gitCommits))
 
-  setting, _ := UnmarshalYaml([]byte(test_data))
-  isEmcCommit, name := IsEmcCommit(gitCommits[0], setting.Contributors)
+	setting, _ := UnmarshalYaml([]byte(test_data))
+	isEmcCommit, name := IsEmcCommit(gitCommits[0], setting.Contributors)
 
-  assert.Equal(t, true, isEmcCommit)
-  assert.Equal(t, "Victor Fong", name)
+	assert.Equal(t, true, isEmcCommit)
+	assert.Equal(t, "Victor Fong", name)
 
 }
 
 func TestIsTwoAuthorPattern(t *testing.T) {
-  var testString = "Author: Chris Piraino and Yu Zhang <cpiraino@pivotal.io>"
-  result, author1, author2 := IsTwoAuthorPattern(testString)
+	var testString = "Author: Chris Piraino and Yu Zhang <cpiraino@pivotal.io>"
+	result, author1, author2 := IsTwoAuthorPattern(testString)
 
-  assert.Equal(t, true, result)
-  assert.Equal(t, "Chris Piraino", author1)
-  assert.Equal(t, "Yu Zhang", author2)
+	assert.Equal(t, true, result)
+	assert.Equal(t, "Chris Piraino", author1)
+	assert.Equal(t, "Yu Zhang", author2)
+}
+
+func TestGetRepoName(t *testing.T) {
+	var testString string = "https://github.com/cloudfoundry/nodejs-buildpack.git"
+	var result string = getRepoName(testString)
+	assert.Equal(t, "nodejs-buildpack", result)
+}
+
+func TestGetCoAuthorDomain(t *testing.T) {
+	var testString string = "    Signed-off-by: Min Su Han <glide1@gmail.com>"
+	var result string = GetEmailDomain(testString)
+	assert.Equal(t, "gmail.com", result)
+}
+
+func TestGetAuthorDomain(t *testing.T) {
+	var testString string = "Author: Maria Shaldibina <mshaldibina@pivotal.io>"
+	var result string = GetEmailDomain(testString)
+	assert.Equal(t, "pivotal.io", result)
+}
+
+func TestGetTestDomain(t *testing.T) {
+	var testString string = "line = Author: test <test>"
+	var result string = GetEmailDomain(testString)
+	assert.Equal(t, "", result)
+}
+
+func TestGetRepos(t *testing.T) {
+	var result map[string]string = getRepos("test_repo.txt")
+	assert.Equal(t, 2, len(result))
+	assert.Equal(t, "https://github.com/cloudfoundry/api-docs.git", result["api-docs"])
+	assert.Equal(t, "https://github.com/cloudfoundry/binary-builder.git", result["binary-builder"])
 }
