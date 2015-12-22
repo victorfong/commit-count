@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"gopkg.in/yaml.v2"
 )
@@ -69,6 +70,7 @@ func fetchSource(repo Repository) error {
 
 type GitCommit struct {
 	Author         string
+	Date           time.Time
 	Description    string
 	CoAuthor       string
 	Repo           string
@@ -105,6 +107,14 @@ func GetFirstWord(line string) string {
 	return elements[0]
 }
 
+func parseDate(line string) time.Time {
+	var elements []string = strings.Split(line, " ")
+	var dateString string = elements[7] + "-" + elements[4] + "-" + elements[5]
+	result, _ := time.Parse("2006-Jan-02", dateString)
+	// fmt.Printf("Date: %s\n", dateString)
+	return result
+}
+
 func ReadCommit(scanner *bufio.Scanner, repo string) []GitCommit {
 	var result []GitCommit
 
@@ -122,6 +132,7 @@ func ReadCommit(scanner *bufio.Scanner, repo string) []GitCommit {
 			var coauthor string
 			var authorDomain string
 			var coauthorDomain string
+			var date time.Time
 
 			isTwoAuthorPattern, author, coauthor := IsTwoAuthorPattern(line)
 			if !isTwoAuthorPattern {
@@ -131,7 +142,7 @@ func ReadCommit(scanner *bufio.Scanner, repo string) []GitCommit {
 
 			// Date
 			scanner.Scan()
-			// scanner.Text()
+			date = parseDate(scanner.Text())
 
 			// Blank line
 			scanner.Scan()
@@ -141,6 +152,7 @@ func ReadCommit(scanner *bufio.Scanner, repo string) []GitCommit {
 				line = scanner.Text()
 
 				firstWord = GetFirstWord(line)
+
 				if firstWord == "Signed-off-by:" {
 					coauthor = GetCoAuthor(line)
 					coauthorDomain = GetEmailDomain(line)
@@ -158,6 +170,7 @@ func ReadCommit(scanner *bufio.Scanner, repo string) []GitCommit {
 
 			commit := GitCommit{
 				Author:         author,
+				Date:           date,
 				Description:    description,
 				CoAuthor:       coauthor,
 				Repo:           repo,
@@ -362,16 +375,19 @@ func getScanner(repoName string) *bufio.Scanner {
 	return scanner
 }
 
-func CountOverallCommit(gitCommits []GitCommit, result map[string]int) {
+func CountOverallCommit(gitCommits []GitCommit, result map[string]int, afterDate time.Time) {
 	for _, commit := range gitCommits {
-		if commit.AuthorDomain != "" {
-			result[commit.AuthorDomain]++
-			result["TOTAL"]++
-		}
 
-		if commit.CoAuthorDomain != "" {
-			result[commit.CoAuthorDomain]++
-			result["TOTAL"]++
+		if commit.Date.After(afterDate) {
+			if commit.AuthorDomain != "" {
+				result[commit.AuthorDomain]++
+				result["TOTAL"]++
+			}
+
+			if commit.CoAuthorDomain != "" {
+				result[commit.CoAuthorDomain]++
+				result["TOTAL"]++
+			}
 		}
 	}
 }
@@ -399,9 +415,21 @@ func getRepos(filepath string) map[string]string {
 	return result
 }
 
+func getAfterDate(dateString string) time.Time {
+	result, err := time.Parse("2006-01-02", dateString)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return result
+}
+
 func FetchOverallCount() {
 	var repoMap map[string]string = getRepos("repos.txt")
 	var result map[string]int = make(map[string]int)
+
+	var afterDate time.Time = getAfterDate("2015-05-31")
 
 	concurrency := 30
 	sem := make(chan bool, concurrency)
@@ -425,7 +453,7 @@ func FetchOverallCount() {
 			var scanner *bufio.Scanner = getScanner(repo1.Name)
 			var gitCommits []GitCommit = ReadCommit(scanner, repo1.Name)
 
-			CountOverallCommit(gitCommits, result)
+			CountOverallCommit(gitCommits, result, afterDate)
 			fmt.Printf("COUNT = %d, TOTAL = %d (%s)\n", len(result), result["TOTAL"], repo1.Name)
 		}(repo)
 	}

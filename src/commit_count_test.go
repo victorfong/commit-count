@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -44,9 +45,12 @@ func TestReadSettingFile(t *testing.T) {
 }
 
 func TestGetFirstWord(t *testing.T) {
+
 	assert.Equal(t, "Authors:", GetFirstWord("Authors: Victor Fong"))
+	assert.Equal(t, "Date:", GetFirstWord("Date:   Sun Oct 18 19:33:09 2015 -0400"))
 	assert.Equal(t, "", GetFirstWord(" "))
 	assert.Equal(t, "", GetFirstWord(""))
+
 }
 
 var test_commit = `
@@ -74,9 +78,14 @@ func TestReadCommit(t *testing.T) {
 	assert.Equal(t, "Maria Shaldibina", gitCommits[0].Author)
 	assert.Equal(t, "Merge branch 'master' into hotfix-postgres", gitCommits[0].Description)
 	assert.Equal(t, "repo1", gitCommits[0].Repo)
+	var date time.Time = getAfterDate("2015-10-15")
+	assert.True(t, date.Equal(gitCommits[0].Date))
 
 	assert.Equal(t, "Devin Fallak", gitCommits[1].Author)
 	assert.Equal(t, "Update README.md", gitCommits[1].Description)
+	var date2 time.Time = getAfterDate("2015-10-14")
+	assert.True(t, date2.Equal(gitCommits[1].Date))
+
 }
 
 func TestGetCoAuthor(t *testing.T) {
@@ -142,6 +151,21 @@ func TestGetTestDomain(t *testing.T) {
 	var testString string = "line = Author: test <test>"
 	var result string = GetEmailDomain(testString)
 	assert.Equal(t, "", result)
+}
+
+func TestParseDate(t *testing.T) {
+	var testString string = "Date:   Sun Oct 18 17:44:34 2015 -0400"
+	var result time.Time = parseDate(testString)
+	expectedResult, _ := time.Parse("01-02-2006", "10-18-2015")
+	assert.True(t, expectedResult.Equal(result))
+}
+
+func TestGetAfterDate(t *testing.T) {
+	var testString string = "Date:   Sun Oct 18 17:44:34 2015 -0400"
+	var result time.Time = parseDate(testString)
+
+	var afterDate time.Time = getAfterDate("2015-05-31")
+	assert.True(t, result.After(afterDate))
 }
 
 func TestGetRepos(t *testing.T) {
