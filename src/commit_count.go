@@ -375,10 +375,10 @@ func getScanner(repoName string) *bufio.Scanner {
 	return scanner
 }
 
-func CountOverallCommit(gitCommits []GitCommit, result map[string]int, afterDate time.Time) {
+func CountOverallCommit(gitCommits []GitCommit, result map[string]int, beginDate time.Time) {
 	for _, commit := range gitCommits {
 
-		if commit.Date.After(afterDate) {
+		if commit.Date.After(beginDate) {
 			if commit.AuthorDomain != "" {
 				result[commit.AuthorDomain]++
 				result["TOTAL"]++
@@ -415,7 +415,7 @@ func getRepos(filepath string) map[string]string {
 	return result
 }
 
-func getAfterDate(dateString string) time.Time {
+func getDate(dateString string) time.Time {
 	result, err := time.Parse("2006-01-02", dateString)
 
 	if err != nil {
@@ -429,7 +429,7 @@ func FetchOverallCount() {
 	var repoMap map[string]string = getRepos("repos.txt")
 	var result map[string]int = make(map[string]int)
 
-	var afterDate time.Time = getAfterDate("2015-05-31")
+	var beginDate time.Time = getDate("2015-05-31")
 
 	concurrency := 30
 	sem := make(chan bool, concurrency)
@@ -453,7 +453,7 @@ func FetchOverallCount() {
 			var scanner *bufio.Scanner = getScanner(repo1.Name)
 			var gitCommits []GitCommit = ReadCommit(scanner, repo1.Name)
 
-			CountOverallCommit(gitCommits, result, afterDate)
+			CountOverallCommit(gitCommits, result, beginDate)
 			fmt.Printf("COUNT = %d, TOTAL = %d (%s)\n", len(result), result["TOTAL"], repo1.Name)
 		}(repo)
 	}

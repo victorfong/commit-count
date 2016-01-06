@@ -78,12 +78,12 @@ func TestReadCommit(t *testing.T) {
 	assert.Equal(t, "Maria Shaldibina", gitCommits[0].Author)
 	assert.Equal(t, "Merge branch 'master' into hotfix-postgres", gitCommits[0].Description)
 	assert.Equal(t, "repo1", gitCommits[0].Repo)
-	var date time.Time = getAfterDate("2015-10-15")
+	var date time.Time = getDate("2015-10-15")
 	assert.True(t, date.Equal(gitCommits[0].Date))
 
 	assert.Equal(t, "Devin Fallak", gitCommits[1].Author)
 	assert.Equal(t, "Update README.md", gitCommits[1].Description)
-	var date2 time.Time = getAfterDate("2015-10-14")
+	var date2 time.Time = getDate("2015-10-14")
 	assert.True(t, date2.Equal(gitCommits[1].Date))
 
 }
@@ -160,12 +160,12 @@ func TestParseDate(t *testing.T) {
 	assert.True(t, expectedResult.Equal(result))
 }
 
-func TestGetAfterDate(t *testing.T) {
+func TestGetDate(t *testing.T) {
 	var testString string = "Date:   Sun Oct 18 17:44:34 2015 -0400"
 	var result time.Time = parseDate(testString)
 
-	var afterDate time.Time = getAfterDate("2015-05-31")
-	assert.True(t, result.After(afterDate))
+	var date time.Time = getDate("2015-05-31")
+	assert.True(t, result.After(date))
 }
 
 func TestGetRepos(t *testing.T) {
