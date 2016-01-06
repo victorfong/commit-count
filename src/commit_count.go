@@ -110,7 +110,11 @@ func GetFirstWord(line string) string {
 func parseDate(line string) time.Time {
 	var elements []string = strings.Split(line, " ")
 	var dateString string = elements[7] + "-" + elements[4] + "-" + elements[5]
-	result, _ := time.Parse("2006-Jan-02", dateString)
+	result, err := time.Parse("2006-Jan-2", dateString)
+	if err != nil {
+		fmt.Printf("Error parsing line: %s\n", line)
+		panic(err)
+	}
 	// fmt.Printf("Date: %s\n", dateString)
 	return result
 }
@@ -142,7 +146,7 @@ func ReadCommit(scanner *bufio.Scanner, repo string) []GitCommit {
 
 			// Date
 			scanner.Scan()
-			date = parseDate(scanner.Text())
+			date = parseDate(strings.Trim(scanner.Text(), " "))
 
 			// Blank line
 			scanner.Scan()
@@ -375,10 +379,12 @@ func getScanner(repoName string) *bufio.Scanner {
 	return scanner
 }
 
-func CountOverallCommit(gitCommits []GitCommit, result map[string]int, beginDate time.Time) {
+func CountOverallCommit(gitCommits []GitCommit, result map[string]int,
+	beginDate time.Time, endDate time.Time) {
 	for _, commit := range gitCommits {
 
-		if commit.Date.After(beginDate) {
+
+		if commit.Date.After(beginDate) && commit.Date.Before(endDate){
 			if commit.AuthorDomain != "" {
 				result[commit.AuthorDomain]++
 				result["TOTAL"]++
@@ -388,6 +394,8 @@ func CountOverallCommit(gitCommits []GitCommit, result map[string]int, beginDate
 				result[commit.CoAuthorDomain]++
 				result["TOTAL"]++
 			}
+		} else {
+			// fmt.Printf("Ignore Date Date = %s\n", commit.Date.Format("Jan 2 2006"))
 		}
 	}
 }
@@ -430,6 +438,7 @@ func FetchOverallCount() {
 	var result map[string]int = make(map[string]int)
 
 	var beginDate time.Time = getDate("2015-05-31")
+	var endDate time.Time = getDate("2016-01-01")
 
 	concurrency := 30
 	sem := make(chan bool, concurrency)
@@ -453,7 +462,7 @@ func FetchOverallCount() {
 			var scanner *bufio.Scanner = getScanner(repo1.Name)
 			var gitCommits []GitCommit = ReadCommit(scanner, repo1.Name)
 
-			CountOverallCommit(gitCommits, result, beginDate)
+			CountOverallCommit(gitCommits, result, beginDate, endDate)
 			fmt.Printf("COUNT = %d, TOTAL = %d (%s)\n", len(result), result["TOTAL"], repo1.Name)
 		}(repo)
 	}

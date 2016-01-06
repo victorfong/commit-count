@@ -54,6 +54,7 @@ func TestGetFirstWord(t *testing.T) {
 }
 
 var test_commit = `
+commit a39b69d7e6ab6c59c76102136815c6b7ae578804
 Author: Maria Shaldibina <mshaldibina@pivotal.io>
 Date:   Thu Oct 15 09:43:35 2015 -0700
 
@@ -167,6 +168,121 @@ func TestGetDate(t *testing.T) {
 	var date time.Time = getDate("2015-05-31")
 	assert.True(t, result.After(date))
 }
+
+var testCommit = `
+commit a39b69d7e6ab6c59c76102136815c6b7ae578804
+Author: Marco Voelz <marco.voelz@sap.com>
+Date:   Tue Dec 29 17:56:22 2015 +0100
+
+    Add instructions to run tests
+
+commit 4d4033620e0c7280c8354504358a17b510c32e3f
+Author: Marco Voelz <marco.voelz@sap.com>
+Date:   Mon Dec 28 17:02:41 2015 +0100
+
+    Remove space in 'new final release' commit msg
+
+commit d89a0dc09f0a9948e02cc47220e0db2967e3cc7e
+Author: Marco Voelz <marco.voelz@sap.com>
+Date:   Mon Dec 28 16:56:56 2015 +0100
+
+    Final releases are built in concourse
+
+commit 078744d4ccfd72f198dd15c210e689cc6929201b
+Merge: 3c71e67 0a09bc0
+Author: Beyhan Veli <beyhan.veli@sap.com>
+Date:   Tue Dec 29 15:22:50 2015 +0100
+
+    Merge pull request #17 from hashmap/power-builder
+
+    Enable ppc64le support
+
+commit 3c71e67c27ba0f4232b004e13b1fe6486b7b945b
+Author: Beyhan Veli <beyhan.veli@sap.com>
+Date:   Tue Dec 22 14:01:09 2015 +0100
+
+    Add unit tests for key_name configuration
+
+    - key_name can be configured in resource_pool and
+      CPI properties. Unit tests added to test this feature.
+    - ITs configure key_name only as CPI property
+
+    [#108602248](https://www.pivotaltracker.com/story/show/108602248)
+
+    Signed-off-by: Felix Riegger <felix.riegger@sap.com>
+`
+
+func TestCountOverallCommit_None(t *testing.T){
+	scanner := bufio.NewScanner(strings.NewReader(testCommit))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 5, len(gitCommits))
+
+	var beginDate time.Time = getDate("2015-01-23")
+	var endDate time.Time = getDate("2016-01-01")
+	var result map[string]int = make(map[string]int)
+
+	CountOverallCommit(gitCommits, result, beginDate, endDate)
+	assert.Equal(t, 6, result["TOTAL"])
+	assert.Equal(t, 6, result["sap.com"])
+}
+
+func TestCountOverallCommit_IgnoreOne(t *testing.T){
+	scanner := bufio.NewScanner(strings.NewReader(testCommit))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 5, len(gitCommits))
+
+	var beginDate time.Time = getDate("2015-12-23")
+	var endDate time.Time = getDate("2016-01-01")
+	var result map[string]int = make(map[string]int)
+
+	CountOverallCommit(gitCommits, result, beginDate, endDate)
+	assert.Equal(t, 4, result["TOTAL"])
+	assert.Equal(t, 4, result["sap.com"])
+}
+
+func TestCountOverallCommit_IgnoreThree(t *testing.T){
+	scanner := bufio.NewScanner(strings.NewReader(testCommit))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 5, len(gitCommits))
+
+	var beginDate time.Time = getDate("2015-12-28")
+	var endDate time.Time = getDate("2016-01-01")
+	var result map[string]int = make(map[string]int)
+
+	CountOverallCommit(gitCommits, result, beginDate, endDate)
+	assert.Equal(t, 2, result["TOTAL"])
+	assert.Equal(t, 2, result["sap.com"])
+}
+
+func TestCountOverallCommit_IgnoreEndTwo(t *testing.T){
+	scanner := bufio.NewScanner(strings.NewReader(testCommit))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 5, len(gitCommits))
+
+	var beginDate time.Time = getDate("2015-01-23")
+	var endDate time.Time = getDate("2015-12-29")
+	var result map[string]int = make(map[string]int)
+
+	CountOverallCommit(gitCommits, result, beginDate, endDate)
+	assert.Equal(t, 4, result["TOTAL"])
+	assert.Equal(t, 4, result["sap.com"])
+}
+
+func TestCountOverallCommit_IgnoreAll(t *testing.T){
+	scanner := bufio.NewScanner(strings.NewReader(testCommit))
+	var gitCommits []GitCommit = ReadCommit(scanner, "repo1")
+	assert.Equal(t, 5, len(gitCommits))
+
+	var beginDate time.Time = getDate("2015-12-23")
+	var endDate time.Time = getDate("2015-12-25")
+	var result map[string]int = make(map[string]int)
+
+	CountOverallCommit(gitCommits, result, beginDate, endDate)
+	assert.Equal(t, 0, result["TOTAL"])
+	assert.Equal(t, 0, result["sap.com"])
+}
+
+
 
 func TestGetRepos(t *testing.T) {
 	var result map[string]string = getRepos("test_repo.txt")
